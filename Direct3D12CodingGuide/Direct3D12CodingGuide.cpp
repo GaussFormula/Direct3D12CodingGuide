@@ -22,7 +22,7 @@ DWORD WINAPI        RenderThreadMain(LPVOID);
 
 inline  HANDLE _stdcall BeginThread(
     LPSECURITY_ATTRIBUTES lpThreadAtrributes,
-    SIZE_T dwStackSize,
+    UINT dwStackSize,
     LPTHREAD_START_ROUTINE lpStartAddress,
     LPVOID lpParameter,
     DWORD dwCreationFlags,
@@ -90,15 +90,15 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
+    wcex.style          = CS_OWNDC;
     wcex.lpfnWndProc    = WndProc;
     wcex.cbClsExtra     = 0;
     wcex.cbWndExtra     = 0;
     wcex.hInstance      = hInstance;
     wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_DIRECT3D12CODINGGUIDE));
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW + 1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_DIRECT3D12CODINGGUIDE);
+    wcex.hbrBackground  = NULL;
+    wcex.lpszMenuName   = NULL;
     wcex.lpszClassName  = szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
@@ -127,8 +127,16 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    //Adjust the size of window according to customer size
    AdjustWindowRect(&windowRect, WS_POPUP | WS_VISIBLE, false);
    // Used to new a window
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+   HWND hWnd = CreateWindowExW(
+       0, szWindowClass, szTitle,
+       WS_POPUP | WS_VISIBLE, GetSystemMetrics(SM_CXSCREEN) / 2 - windowRect.right / 2,
+       GetSystemMetrics(SM_CXSCREEN) / 2 - windowRect.bottom / 2,
+       windowRect.right,
+       windowRect.bottom,
+       NULL, NULL,
+       hInstance,
+       NULL
+   );
 
    if (!hWnd)
    {
