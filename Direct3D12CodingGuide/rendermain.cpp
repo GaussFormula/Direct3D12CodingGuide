@@ -26,5 +26,16 @@ DWORD WINAPI RenderThreadMain(LPVOID lpThreadParameter)
         }
     }
 
+    ID3D12CommandQueue* pID3D12CommandQueue;
+    {
+        D3D12_COMMAND_QUEUE_DESC cdqc;
+        // IDXGISwapChain::Present can only run in direct command queue
+        cdqc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+        cdqc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+        cdqc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+        cdqc.NodeMask = 0x1;
+        pD3D12Device->CreateCommandQueue(&cdqc, IID_PPV_ARGS(&pID3D12CommandQueue));
+    }
+
     return 0U;
 }
