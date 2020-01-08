@@ -129,8 +129,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    // Used to new a window
    HWND hWnd = CreateWindowExW(
        0, szWindowClass, szTitle,
-       WS_POPUP | WS_VISIBLE, GetSystemMetrics(SM_CXSCREEN) / 2 - windowRect.right / 2,
-       GetSystemMetrics(SM_CXSCREEN) / 2 - windowRect.bottom / 2,
+       WS_POPUP | WS_VISIBLE,
+       200,
+       200,
        windowRect.right,
        windowRect.bottom,
        NULL, NULL,
