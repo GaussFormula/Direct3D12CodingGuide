@@ -6,7 +6,7 @@
 
 DWORD WINAPI RenderThreadMain(LPVOID lpThreadParameter)
 {
-    HWND hWnd = static_cast<HWND>(lpThreadParameter);// The handle of window
+    HWND hWnd = static_cast<HWND>(lpThreadParameter);// The handle of rendering window
 
     // A pointer for DXGIFactory
     IDXGIFactory* pDXGIFactory;
@@ -37,5 +37,26 @@ DWORD WINAPI RenderThreadMain(LPVOID lpThreadParameter)
         pD3D12Device->CreateCommandQueue(&cdqc, IID_PPV_ARGS(&pID3D12CommandQueue));
     }
 
+    IDXGISwapChain* pIDXGISwapChain;
+    {
+        DXGI_SWAP_CHAIN_DESC scdc;
+        scdc.BufferDesc.Width = scdc.BufferDesc.Height = 0U;
+        scdc.BufferDesc.RefreshRate.Numerator = 60U;
+        scdc.BufferDesc.RefreshRate.Denominator = 1U;
+        scdc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        scdc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+        scdc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+        scdc.SampleDesc.Count = 1U;
+        scdc.SampleDesc.Quality = 0U;
+        scdc.BufferUsage = DXGI_USAGE_BACK_BUFFER | DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        scdc.BufferCount = 2;
+        scdc.OutputWindow = hWnd;
+        scdc.Windowed = TRUE;
+        scdc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+        scdc.Flags = 0U;
+        pDXGIFactory->CreateSwapChain(pID3D12CommandQueue,&scdc,&pIDXGISwapChain);
+    }
+    pDXGIFactory->Release();
+    pIDXGISwapChain->Present(0, 0);
     return 0U;
 }
