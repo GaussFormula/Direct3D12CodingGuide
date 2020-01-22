@@ -57,6 +57,19 @@ DWORD WINAPI RenderThreadMain(LPVOID lpThreadParameter)
         pDXGIFactory->CreateSwapChain(pID3D12CommandQueue,&scdc,&pIDXGISwapChain);
     }
     pDXGIFactory->Release();
+
+    ID3D12DescriptorHeap* pRTVHeap;
+    {
+        D3D12_DESCRIPTOR_HEAP_DESC RTVHeapDesc =
+        {
+            D3D12_DESCRIPTOR_HEAP_TYPE_RTV,1,D3D12_DESCRIPTOR_HEAP_FLAG_NONE,0x1
+        };
+        pD3D12Device->CreateDescriptorHeap(&RTVHeapDesc, IID_PPV_ARGS(&pRTVHeap));
+    }
+
+    ID3D12Resource* pFrameBuffer;
+    pIDXGISwapChain->GetBuffer(0, IID_PPV_ARGS(&pFrameBuffer));
+    pD3D12Device->CreateRenderTargetView(pFrameBuffer, NULL, pRTVHeap->GetCPUDescriptorHandleForHeapStart());
     pIDXGISwapChain->Present(0, 0);
     return 0U;
 }
