@@ -99,6 +99,27 @@ DWORD WINAPI RenderThreadMain(LPVOID lpThreadParameter)
     pDirectCommandList->ResourceBarrier(1, &RenderTargetToCommon);
     pDirectCommandList->Close();
     pID3D12CommandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList**>(&pDirectCommandList));
+
+
+    ID3D12RootSignature* pGRS;
+    {
+        //Loading byte code into memory
+        HANDLE hGRSFile = CreateFileW(L"GRS.cso", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL, NULL);
+        LARGE_INTEGER szGRSFile;
+        GetFileSizeEx(hGRSFile, &szGRSFile);
+        HANDLE hGRSSection = CreateFileMappingW(hGRSFile, NULL, PAGE_READONLY, 0, szGRSFile.LowPart, NULL);
+        void* pGRSFile = MapViewOfFile(hGRSSection, FILE_MAP_READ, 0, 0, szGRSFile.LowPart);
+
+        // Create root signature object
+        pD3D12Device->CreateRootSignature(0x1, pGRSFile, szGRSFile.LowPart, IID_PPV_ARGS(&pGRS));
+
+        UnmapViewOfFile(pGRSFile);
+        CloseHandle(hGRSSection);
+        CloseHandle(hGRSFile);
+    }
+    pDirectCommandList->SetGraphicsRootSignature(pGRS);
+
     pIDXGISwapChain->Present(0, 0);
     return 0U;
 }
