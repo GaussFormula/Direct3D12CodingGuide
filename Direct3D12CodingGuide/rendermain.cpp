@@ -70,6 +70,35 @@ DWORD WINAPI RenderThreadMain(LPVOID lpThreadParameter)
     ID3D12Resource* pFrameBuffer;
     pIDXGISwapChain->GetBuffer(0, IID_PPV_ARGS(&pFrameBuffer));
     pD3D12Device->CreateRenderTargetView(pFrameBuffer, NULL, pRTVHeap->GetCPUDescriptorHandleForHeapStart());
+
+    ID3D12CommandAllocator* pDirectCommandAllocator;
+    pD3D12Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&pDirectCommandAllocator));
+
+    ID3D12GraphicsCommandList* pDirectCommandList;
+
+    pD3D12Device->CreateCommandList(0x1, D3D12_COMMAND_LIST_TYPE_DIRECT, pDirectCommandAllocator, NULL,
+        IID_PPV_ARGS(&pDirectCommandList));
+
+    D3D12_RESOURCE_BARRIER CommonToRenderTarget =
+    {
+        D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,D3D12_RESOURCE_BARRIER_FLAG_NONE,{
+        pFrameBuffer,0,D3D12_RESOURCE_STATE_COMMON,D3D12_RESOURCE_STATE_RENDER_TARGET
+}
+    };
+    pDirectCommandList->ResourceBarrier(1, &CommonToRenderTarget);
+
+    float rgbaColor[4] = { 1.0f,0.0f,1.0f,1.0f };
+    pDirectCommandList->ClearRenderTargetView(pRTVHeap->GetCPUDescriptorHandleForHeapStart(), rgbaColor, 0, NULL);
+
+    D3D12_RESOURCE_BARRIER RenderTargetToCommon =
+    {
+        D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,D3D12_RESOURCE_BARRIER_FLAG_NONE,{
+        pFrameBuffer,0,D3D12_RESOURCE_STATE_RENDER_TARGET,D3D12_RESOURCE_STATE_COMMON
+}
+    };
+    pDirectCommandList->ResourceBarrier(1, &RenderTargetToCommon);
+    pDirectCommandList->Close();
+    pID3D12CommandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList**>(&pDirectCommandList));
     pIDXGISwapChain->Present(0, 0);
     return 0U;
 }
